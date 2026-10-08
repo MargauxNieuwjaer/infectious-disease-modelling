@@ -61,7 +61,7 @@ count(sti, sex, age)
 
 my_council <- "Surrey"
 sti |>
-  filter(area_name == my_council) |>. #== asks questions: are two things equal
+  filter(area_name == my_council) |> #== asks questions: are two things equal
   distinct(area_name, area_type)
 
 #CHECK FOR MISSING VALUES 
@@ -163,5 +163,44 @@ ggplot(councils_latest,
   theme_minimal()+
   theme(axis.text.x = element_blank())
   
+#PRINT SURREY SIMPLE VALUE
+my_row$value
+
+#SURREY VALUE WITH 95% CI AND CLASSIFICATION
+my_row |>                                  #start from the Surrey row
+  select(area_name, timeperiod, value,     #keep the council name, year and rate...
+         lower_ci95_0limit,                #...plus the bottom of the confidence interval
+         upper_ci95_0limit,                #...and the top of it
+         significance)                     #...and our Higher/Similar/Lower label
+
+#PULL OUT THE TWO YEARS WE COMPARE (2025 AND 2019)
+surrey_2yr <- sti |>                                   # start from the full table; result goes in a box called "surrey_2yr"
+  filter(area_name == my_council,                      # keep only Surrey...
+         timeperiod %in% c("2019", "2025")) |>         # ...and only these two years (in quotes, because timeperiod is text)
+  arrange(desc(timeperiod)) |>                         # sort so 2025 comes first and 2019 second
+  select(area_name, timeperiod, count, denominator, value)   # keep only the columns we need
+
+surrey_2yr                                             # print it: you should see exactly 2 rows
+
+#RUN POISSON TEST TO ASK DIFF BETWEEN THE TWO RATES OR RANDOM
+res <- poisson.test(x = surrey_2yr$count,              # x = the number of tests in each year (2025 first, then 2019)
+                    T = surrey_2yr$denominator)        # T = the population each count comes from
+
+res                                                    # print the full result
+
+#PULL OUT NUMBERS YOU NEED
+res$estimate                                # the rate ratio = 2025 rate ÷ 2019 rate (below 1 means 2025 is lower)
+res$conf.int                                # the 95% confidence interval around that ratio
+res$p.value                                 # the p-value (quote the interval first; if it's tiny, say "p < 0.001")
+
+round((res$estimate - 1) * 100, 1)          # the ratio as a % change (e.g. 0.85 becomes -15%)
+round((res$conf.int - 1) * 100, 1)          # the confidence interval as a % change
+
+#My analysis of the results:
+#2019: 36,952 tests ; 3,099 rate per 100,000
+#2025: 30,186 tests; 2,417 rate per 100,000
+#Surrey's STI testing rate fell from 3,099 per 100,000 in 2019 to 2,417 in 2025, a
+#22% reduction (rate ratio 0.78, 95% CI 0.77 to 0.79, p<0.001), using a Poisson test
+#comparing the two rates
 
 

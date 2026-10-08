@@ -1,6 +1,4 @@
-install.packages("tidyverse")
-install.packages("tidyr")
-install.packages("deSolve")
+
 # LOAD THE PACKAGES:
 library(ggplot2)
 library(tidyr)
@@ -62,5 +60,8 @@ ggplot(data = output_long,                                               # speci
   ylab("Number of people") +                                             # add label for y axis
   labs(colour = "Compartment")    
 
-
-
+write.csv(output_long, "sir_output_long.csv", row.names = FALSE)
+getwd(
+  
+)
+write.csv(output_long, "~/Desktop/sir_output_long.csv", row.names = FALSE)
